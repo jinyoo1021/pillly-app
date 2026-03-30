@@ -66,6 +66,9 @@ GoogleService-Info.plist
 .flutter-plugins-dependencies
 .packages
 build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
 *.g.dart
 *.freezed.dart
 
@@ -77,6 +80,7 @@ ios/.symlinks/
 ios/Flutter/Flutter.framework
 ios/Flutter/Flutter.podspec
 ios/Runner/GeneratedPluginRegistrant.*
+ios/Runner/GoogleService-Info.plist
 *.xcworkspace/
 *.xcuserdata/
 

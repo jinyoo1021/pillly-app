@@ -26,3 +26,63 @@ linter:
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
+
+name: pillly_app
+description: Medication reminder app for chronic disease patients
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # Backend / Auth
+  supabase_flutter: ^2.12.0
+
+  # State management
+  flutter_riverpod: ^3.3.1
+  riverpod_annotation: ^2.6.1
+
+  # Routing
+  go_router: ^17.1.0
+
+  # Push notifications
+  firebase_messaging: ^16.1.2
+  flutter_local_notifications: ^21.0.0
+
+  # i18n
+  intl: ^0.20.2
+
+  # Utilities
+  shared_preferences: ^2.5.3
+  flutter_secure_storage: ^9.2.4
+  http: ^1.4.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  build_runner: ^2.4.15
+  riverpod_generator: ^2.6.5
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+  fonts:
+    - family: Pretendard
+      fonts:
+        - asset: assets/fonts/Pretendard-Regular.otf
+          weight: 400
+        - asset: assets/fonts/Pretendard-Medium.otf
+          weight: 500
+        - asset: assets/fonts/Pretendard-SemiBold.otf
+          weight: 600
+        - asset: assets/fonts/Pretendard-Bold.otf
+          weight: 700
