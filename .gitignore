@@ -113,4 +113,6 @@ web/
 # Flutter generated files
 # ============================================================
 .metadata
-macos/Flutter/GeneratedPluginRegistrant.swift
+macos/Flutter/GeneratedPluginRegistrant.swiftlib/firebase_options.dart
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
