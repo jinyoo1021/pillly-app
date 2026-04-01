@@ -8,6 +8,13 @@ import '../features/auth/presentation/register_screen.dart';
 import '../features/auth/providers/auth_provider.dart';
 import '../features/schedules/presentation/home_screen.dart';
 import '../features/medications/presentation/medication_add_screen.dart';
+import '../features/medications/presentation/medication_list_screen.dart';
+import '../features/medications/presentation/medication_edit_screen.dart';
+import '../features/medications/domain/medication.dart';
+import '../features/dose/presentation/dose_history_screen.dart';
+import '../features/dose/presentation/dose_stats_screen.dart';
+import '../features/notifications/presentation/notification_settings_screen.dart';
+import '../features/settings/presentation/settings_screen.dart';
 
 class AppRoutes {
   AppRoutes._();
@@ -80,33 +87,35 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.medicationEdit,
-        builder: (context, state) => _PlaceholderScreen(
-            label: 'Edit Medication ${state.pathParameters['id']}'),
+        builder: (context, state) {
+          final medication = state.extra as Medication;
+          return MedicationEditScreen(medication: medication);
+        }
       ),
       GoRoute(
         path: AppRoutes.medicationList,
         builder: (context, state) =>
-        const _PlaceholderScreen(label: 'Medication List'),
+        const MedicationListScreen(),
       ),
       GoRoute(
         path: AppRoutes.doseHistory,
         builder: (context, state) =>
-        const _PlaceholderScreen(label: 'Dose History'),
+        const DoseHistoryScreen(),
       ),
       GoRoute(
         path: AppRoutes.doseStats,
         builder: (context, state) =>
-        const _PlaceholderScreen(label: 'Statistics'),
+        const DoseStatsScreen(),
       ),
       GoRoute(
         path: AppRoutes.notificationSettings,
         builder: (context, state) =>
-        const _PlaceholderScreen(label: 'Notification Settings'),
+        const NotificationSettingsScreen(),
       ),
       GoRoute(
         path: AppRoutes.settings,
         builder: (context, state) =>
-        const _PlaceholderScreen(label: 'Settings'),
+        const SettingsScreen(),
       ),
     ],
   );
@@ -118,20 +127,20 @@ class _AuthChangeNotifier extends ChangeNotifier {
   }
 }
 
-class _PlaceholderScreen extends StatelessWidget {
-  const _PlaceholderScreen({required this.label});
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(label)),
-      body: Center(
-        child: Text(
-          label,
-          style: const TextStyle(fontSize: 18, color: Color(0xFF6B7585)),
-        ),
-      ),
-    );
-  }
-}
+// class _PlaceholderScreen extends StatelessWidget {
+//   const _PlaceholderScreen({required this.label});
+//   final String label;
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(title: Text(label)),
+//       body: Center(
+//         child: Text(
+//           label,
+//           style: const TextStyle(fontSize: 18, color: Color(0xFF6B7585)),
+//         ),
+//       ),
+//     );
+//   }
+// }
