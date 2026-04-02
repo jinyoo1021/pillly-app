@@ -70,5 +70,17 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <!-- REVERSED_CLIENT_ID from GoogleService-Info.plist -->
+                <string>REDACTED_REVERSED_CLIENT_ID</string>
+            </array>
+        </dict>
+    </array>
 </dict>
 </plist>

@@ -3,34 +3,24 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../data/auth_repository.dart';
 import '../domain/pillly_user.dart';
 
-// Repository provider
-
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository();
 });
-
-// Auth state stream (Supabase raw)
 
 final authStateProvider = StreamProvider<AuthState>((ref) {
   final repo = ref.watch(authRepositoryProvider);
   return repo.authStateChanges;
 });
 
-// Current user (derived)
-
 final currentUserProvider = Provider<PilllyUser?>((ref) {
   final repo = ref.watch(authRepositoryProvider);
   return repo.currentUser;
 });
 
-// Is authenticated (derived)
-
 final isAuthenticatedProvider = Provider<bool>((ref) {
   final user = ref.watch(currentUserProvider);
   return user != null;
 });
-
-// Auth notifier (actions)
 
 class AuthNotifier extends AsyncNotifier<PilllyUser?> {
   AuthRepository get _repo => ref.read(authRepositoryProvider);
@@ -46,7 +36,6 @@ class AuthNotifier extends AsyncNotifier<PilllyUser?> {
         }
       });
     });
-
     return _repo.currentUser;
   }
 
@@ -58,10 +47,7 @@ class AuthNotifier extends AsyncNotifier<PilllyUser?> {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(
           () => _repo.signUpWithEmail(
-        email: email,
-        password: password,
-        name: name,
-      ),
+          email: email, password: password, name: name),
     );
   }
 
@@ -77,18 +63,12 @@ class AuthNotifier extends AsyncNotifier<PilllyUser?> {
 
   Future<void> signInWithGoogle() async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      await _repo.signInWithGoogle();
-      return _repo.currentUser;
-    });
+    state = await AsyncValue.guard(() => _repo.signInWithGoogle());
   }
 
   Future<void> signInWithApple() async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      await _repo.signInWithApple();
-      return _repo.currentUser;
-    });
+    state = await AsyncValue.guard(() => _repo.signInWithApple());
   }
 
   Future<void> signOut() async {
