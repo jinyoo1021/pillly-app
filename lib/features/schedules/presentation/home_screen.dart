@@ -8,6 +8,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../../dose/providers/dose_provider.dart';
 import '../domain/schedule.dart';
 import '../providers/schedule_provider.dart';
+import '../../../shared/widgets/bottom_nav.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -97,7 +98,7 @@ class HomeScreen extends ConsumerWidget {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
-      bottomNavigationBar: _BottomNav(),
+      bottomNavigationBar: const BottomNav(),
     );
   }
 }
@@ -366,61 +367,6 @@ class _ActionButton extends StatelessWidget {
           shape: BoxShape.circle,
         ),
         child: Icon(icon, color: color, size: 18),
-      ),
-    );
-  }
-}
-
-class _BottomNav extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.grey200)),
-      ),
-      child: BottomNavigationBar(
-        backgroundColor: AppColors.surface,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.grey400,
-        showUnselectedLabels: true,
-        type: BottomNavigationBarType.fixed,
-        elevation: 0,
-        currentIndex: 0,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              context.go(AppRoutes.home);
-            case 1:
-              context.go(AppRoutes.medicationList);
-            case 2:
-              context.go(AppRoutes.doseHistory);
-            case 3:
-              context.go(AppRoutes.doseStats);
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home_rounded),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.medication_outlined),
-            activeIcon: Icon(Icons.medication_rounded),
-            label: 'Medications',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month_outlined),
-            activeIcon: Icon(Icons.calendar_month_rounded),
-            label: 'History',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart_outlined),
-            activeIcon: Icon(Icons.bar_chart_rounded),
-            label: 'Stats',
-          ),
-        ],
       ),
     );
   }

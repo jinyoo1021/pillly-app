@@ -5,6 +5,7 @@ import '../../../shared/theme/app_colors.dart';
 import '../../schedules/domain/schedule.dart';
 import '../domain/dose_log.dart';
 import '../providers/dose_history_provider.dart';
+import '../../../shared/widgets/bottom_nav.dart';
 
 class DoseHistoryScreen extends ConsumerWidget {
   const DoseHistoryScreen({super.key});
@@ -96,6 +97,7 @@ class DoseHistoryScreen extends ConsumerWidget {
           );
         },
       ),
+      bottomNavigationBar: const BottomNav(),
     );
   }
 }

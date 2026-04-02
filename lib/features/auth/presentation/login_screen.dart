@@ -40,13 +40,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     if (!mounted) return;
 
-    final authState = ref.read(authNotifierProvider);
-    authState.whenOrNull(
-      error: (e, _) => _showError(e.toString()),
-      data: (user) {
-        if (user != null) context.go(AppRoutes.home);
-      },
-    );
+    // Retry up to 5 times waiting for auth state
+    for (int i = 0; i < 5; i++) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      if (!mounted) return;
+
+      final authState = ref.read(authNotifierProvider);
+      if (authState.hasError) {
+        _showError(
+          authState.error.toString().contains('Invalid login')
+              ? 'Email or password is incorrect.'
+              : authState.error.toString(),
+        );
+        return;
+      }
+      if (authState.value != null) {
+        context.go(AppRoutes.home);
+        return;
+      }
+    }
   }
 
   Future<void> _onGoogleLogin() async {
@@ -60,14 +72,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          message.contains('Invalid login')
-              ? 'Email or password is incorrect.'
-              : message,
-        ),
+        content: Text(message),
         backgroundColor: AppColors.missed,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape:
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }

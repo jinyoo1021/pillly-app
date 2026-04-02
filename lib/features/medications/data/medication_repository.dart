@@ -54,7 +54,13 @@ class MedicationRepository {
     }
 
     final body = jsonDecode(response.body) as Map<String, dynamic>;
-    return Medication.fromMap(body['medication'] as Map<String, dynamic>);
+
+    // Backend returns medication data directly (not nested under 'medication' key)
+    final medicationData = body.containsKey('medication')
+        ? body['medication'] as Map<String, dynamic>
+        : body;
+
+    return Medication.fromMap(medicationData);
   }
 
   // PATCH /medications/{id}
@@ -81,7 +87,13 @@ class MedicationRepository {
     }
 
     final body = jsonDecode(response.body) as Map<String, dynamic>;
-    return Medication.fromMap(body['medication'] as Map<String, dynamic>);
+
+    // Backend returns medication data directly (not nested)
+    final medicationData = body.containsKey('medication')
+        ? body['medication'] as Map<String, dynamic>
+        : body;
+
+    return Medication.fromMap(medicationData);
   }
 
   // PATCH /medications/{id}/toggle

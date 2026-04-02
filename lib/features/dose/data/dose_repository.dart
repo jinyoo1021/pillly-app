@@ -5,6 +5,7 @@ import '../../../core/supabase_client.dart';
 import '../domain/dose_action.dart';
 import '../domain/dose_log.dart';
 import '../domain/dose_stats.dart';
+import '../../../features/schedules/domain/schedule.dart';
 
 class DoseRepository {
   DoseRepository();
@@ -46,10 +47,37 @@ class DoseRepository {
     }
 
     final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    // Backend returns daily summary, not individual logs
+    // Convert summary to DoseLog list for calendar display
     final items = body['logs'] as List<dynamic>? ?? [];
-    return items
-        .map((e) => DoseLog.fromMap(e as Map<String, dynamic>))
-        .toList();
+    return items.map((e) {
+      final map = e as Map<String, dynamic>;
+      final dateStr = map['date'] as String;
+      final done = map['done'] as int? ?? 0;
+      final total = map['total'] as int? ?? 0;
+
+      // Determine status from daily summary
+      String status;
+      if (done == total && total > 0) {
+        status = 'done';
+      } else if (done > 0) {
+        status = 'done';
+      } else {
+        status = 'missed';
+      }
+
+      return DoseLog(
+        id: dateStr,
+        scheduleId: '',
+        medicationName: '$done/$total taken',
+        logDate: DateTime.parse(dateStr),
+        status: DoseStatus.values.firstWhere(
+              (s) => s.name == status,
+          orElse: () => DoseStatus.pending,
+        ),
+      );
+    }).toList();
   }
 
   // ── GET /dose/stats ──────────────────────────────────

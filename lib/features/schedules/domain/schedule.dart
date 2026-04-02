@@ -33,7 +33,7 @@ class TodaySchedule {
   factory TodaySchedule.fromMap(Map<String, dynamic> map) {
     return TodaySchedule(
       scheduleId: map['schedule_id'] as String,
-      medicationId: map['medication_id'] as String,
+      medicationId: map['medication_id'] as String? ?? '',
       medicationName: map['medication_name'] as String,
       scheduledTime: map['scheduled_time'] as String,
       status: parseStatus(map['status'] as String? ?? 'pending'),

@@ -25,7 +25,9 @@ class ScheduleRepository {
     }
 
     final body = jsonDecode(response.body) as Map<String, dynamic>;
-    final items = body['schedules'] as List<dynamic>? ?? [];
+
+    // Backend returns 'items' key instead of 'schedules'
+    final items = body['items'] as List<dynamic>? ?? [];
     return items
         .map((e) => TodaySchedule.fromMap(e as Map<String, dynamic>))
         .toList();

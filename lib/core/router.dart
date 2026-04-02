@@ -123,7 +123,12 @@ final routerProvider = Provider<GoRouter>((ref) {
 
 class _AuthChangeNotifier extends ChangeNotifier {
   _AuthChangeNotifier(Ref ref) {
-    ref.listen(isAuthenticatedProvider, (prev, next) => notifyListeners());
+    ref.listen(authNotifierProvider, (prev, next) {
+      notifyListeners();
+    });
+    ref.listen(isAuthenticatedProvider, (prev, next) {
+      notifyListeners();
+    });
   }
 }
 

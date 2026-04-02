@@ -5,6 +5,7 @@ import '../../../core/router.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../domain/medication.dart';
 import '../providers/medication_provider.dart';
+import '../../../shared/widgets/bottom_nav.dart';
 
 class MedicationListScreen extends ConsumerWidget {
   const MedicationListScreen({super.key});
@@ -65,6 +66,7 @@ class MedicationListScreen extends ConsumerWidget {
           );
         },
       ),
+      bottomNavigationBar: const BottomNav(),
     );
   }
 }

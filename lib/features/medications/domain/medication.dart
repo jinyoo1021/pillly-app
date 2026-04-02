@@ -36,13 +36,27 @@ class Medication {
   }
 
   factory Medication.fromMap(Map<String, dynamic> map) {
+    // Extract scheduled_times from nested schedules array
+    final schedulesList = map['schedules'] as List<dynamic>? ?? [];
+    final scheduledTimes = schedulesList
+        .map((s) => (s['scheduled_time'] as String).substring(0, 5))
+        .toList();
+
+    // Get cycle_type from first schedule if not at root level
+    final cycleTypeStr = map['cycle_type'] as String? ??
+        (schedulesList.isNotEmpty
+            ? schedulesList.first['cycle_type'] as String? ?? 'daily'
+            : 'daily');
+
     return Medication(
       id: map['id'] as String,
-      userId: map['user_id'] as String,
+      userId: map['user_id'] as String? ?? '',
       name: map['name'] as String,
-      cycleType: parseCycleType(map['cycle_type'] as String),
-      scheduledTimes: List<String>.from(map['scheduled_times'] ?? []),
-      dosage: (map['dosage'] as num?)?.toDouble(),
+      cycleType: parseCycleType(cycleTypeStr),
+      scheduledTimes: scheduledTimes,
+      dosage: map['dosage'] != null
+          ? double.tryParse(map['dosage'].toString())
+          : null,
       unit: map['unit'] as String?,
       intervalDays: map['interval_days'] as int?,
       weekdays: map['weekdays'] != null
@@ -99,16 +113,29 @@ class MedicationCreateRequest {
   final String? memo;
 
   Map<String, dynamic> toMap() {
-    return {
+    Map<String, dynamic>? cycleValue;
+    if (cycleType == CycleType.weekly && weekdays != null) {
+      cycleValue = {'weekdays': weekdays};
+    } else if (cycleType == CycleType.interval && intervalDays != null) {
+      cycleValue = {'interval_days': intervalDays};
+    }
+
+    final schedules = scheduledTimes.map((time) {
+      final entry = <String, dynamic>{
+        'scheduled_time': time,
+        'cycle_type': cycleType.name,
+      };
+      if (cycleValue != null) entry['cycle_value'] = cycleValue;
+      return entry;
+    }).toList();
+
+    final map = <String, dynamic>{
       'name': name,
-      'cycle_type': cycleType.name,
-      'scheduled_times': scheduledTimes,
-      if (dosage != null) 'dosage': dosage,
-      if (unit != null && unit!.isNotEmpty) 'unit': unit,
-      if (intervalDays != null) 'interval_days': intervalDays,
-      if (weekdays != null) 'weekdays': weekdays,
-      if (memo != null && memo!.isNotEmpty) 'memo': memo,
+      'schedules': schedules,
     };
+    if (dosage != null) map['dosage'] = dosage.toString();
+    if (memo != null && memo!.isNotEmpty) map['memo'] = memo;
+    return map;
   }
 }
 
@@ -134,15 +161,30 @@ class MedicationUpdateRequest {
   final String? memo;
 
   Map<String, dynamic> toMap() {
-    return {
-      if (name != null) 'name': name,
-      if (cycleType != null) 'cycle_type': cycleType!.name,
-      if (scheduledTimes != null) 'scheduled_times': scheduledTimes,
-      if (dosage != null) 'dosage': dosage,
-      if (unit != null) 'unit': unit,
-      if (intervalDays != null) 'interval_days': intervalDays,
-      if (weekdays != null) 'weekdays': weekdays,
-      if (memo != null) 'memo': memo,
-    };
+    Map<String, dynamic>? cycleValue;
+    if (cycleType == CycleType.weekly && weekdays != null) {
+      cycleValue = {'weekdays': weekdays};
+    } else if (cycleType == CycleType.interval && intervalDays != null) {
+      cycleValue = {'interval_days': intervalDays};
+    }
+
+    List<Map<String, dynamic>>? schedules;
+    if (scheduledTimes != null && cycleType != null) {
+      schedules = scheduledTimes!.map((time) {
+        final entry = <String, dynamic>{
+          'scheduled_time': time,
+          'cycle_type': cycleType!.name,
+        };
+        if (cycleValue != null) entry['cycle_value'] = cycleValue;
+        return entry;
+      }).toList();
+    }
+
+    final map = <String, dynamic>{};
+    if (name != null) map['name'] = name;
+    if (schedules != null) map['schedules'] = schedules;
+    if (dosage != null) map['dosage'] = dosage.toString();
+    if (memo != null) map['memo'] = memo;
+    return map;
   }
 }

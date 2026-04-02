@@ -18,8 +18,8 @@ final currentUserProvider = Provider<PilllyUser?>((ref) {
 });
 
 final isAuthenticatedProvider = Provider<bool>((ref) {
-  final user = ref.watch(currentUserProvider);
-  return user != null;
+  final authState = ref.watch(authNotifierProvider);
+  return authState.value != null;
 });
 
 class AuthNotifier extends AsyncNotifier<PilllyUser?> {

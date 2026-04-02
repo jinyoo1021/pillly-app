@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../domain/dose_stats.dart';
 import '../providers/dose_stats_provider.dart';
+import '../../../shared/widgets/bottom_nav.dart';
 
 class DoseStatsScreen extends ConsumerWidget {
   const DoseStatsScreen({super.key});
@@ -95,6 +96,7 @@ class DoseStatsScreen extends ConsumerWidget {
           ),
         ],
       ),
+      bottomNavigationBar: const BottomNav(),
     );
   }
 }
