@@ -21,12 +21,12 @@ class _MedicationAddScreenState extends ConsumerState<MedicationAddScreen> {
   final _memoController = TextEditingController();
 
   CycleType _cycleType = CycleType.daily;
-  String _unit = 'mg';
+  String _unit = 'capsule';
   int _intervalDays = 2;
   final List<int> _weekdays = [];
   final List<TimeOfDay> _times = [const TimeOfDay(hour: 8, minute: 0)];
 
-  static const List<String> _units = ['mg', 'ml', 'tablet', 'capsule', 'drop'];
+  static const List<String> _units = ['capsule', 'mg', 'ml', 'tablet', 'drop'];
 
   @override
   void dispose() {
@@ -195,11 +195,10 @@ class _MedicationAddScreenState extends ConsumerState<MedicationAddScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                SizedBox(
-                  width: 120,
+                Flexible(
                   child: DropdownButtonFormField<String>(
                     initialValue: _unit,
-                    decoration: const InputDecoration(),
+                    isExpanded: true,
                     items: _units
                         .map((u) => DropdownMenuItem(
                           value: u,

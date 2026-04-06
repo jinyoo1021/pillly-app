@@ -32,6 +32,7 @@ class DoseNotifier extends AsyncNotifier<void> {
       // Rollback on failure
       ref.read(todaySchedulesProvider.notifier).refresh();
     }
+    await ref.read(todaySchedulesProvider.notifier).refresh();
   }
 
   Future<void> skipDose({
@@ -52,6 +53,14 @@ class DoseNotifier extends AsyncNotifier<void> {
       // Rollback on failure
       ref.read(todaySchedulesProvider.notifier).refresh();
     }
+    await ref.read(todaySchedulesProvider.notifier).refresh();
+  }
+
+  // Undo - optimistic UI update
+  Future<void> undoDose({required String scheduleId}) async {
+   ref
+        .read(todaySchedulesProvider.notifier)
+        .updateScheduleStatus(scheduleId, DoseStatus.pending);
   }
 }
 

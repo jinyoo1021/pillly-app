@@ -28,9 +28,7 @@ class _MedicationEditScreenState
   late List<int> _weekdays;
   late List<TimeOfDay> _times;
 
-  static const List<String> _units = [
-    'mg', 'ml', 'tablet', 'capsule', 'drop'
-  ];
+  static const List<String> _units = ['capsule', 'mg', 'ml', 'tablet', 'drop'];
 
   @override
   void initState() {

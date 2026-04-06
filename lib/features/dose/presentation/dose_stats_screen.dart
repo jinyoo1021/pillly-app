@@ -21,7 +21,6 @@ class DoseStatsScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          // Period selector
           _PeriodSelector(
             selected: period,
             onChanged: (p) {
@@ -29,19 +28,16 @@ class DoseStatsScreen extends ConsumerWidget {
               ref.read(doseStatsProvider.notifier).loadPeriod(p);
             },
           ),
-
           Expanded(
             child: statsAsync.when(
               loading: () => const Center(
-                child: CircularProgressIndicator(
-                    color: AppColors.primary),
+                child: CircularProgressIndicator(color: AppColors.primary),
               ),
               error: (e, _) => Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('⚠️',
-                        style: TextStyle(fontSize: 48)),
+                    const Text('⚠️', style: TextStyle(fontSize: 48)),
                     const SizedBox(height: 16),
                     const Text(
                       'Failed to load statistics',
@@ -64,31 +60,22 @@ class DoseStatsScreen extends ConsumerWidget {
               data: (stats) => ListView(
                 padding: const EdgeInsets.all(24),
                 children: [
-                  // Adherence rate card
-                  _AdherenceCard(stats: stats),
-
+                  // Overall adherence card
+                  _OverallCard(rate: stats.overallRate),
                   const SizedBox(height: 20),
 
-                  // Summary row
-                  _SummaryRow(stats: stats),
-
-                  const SizedBox(height: 24),
-
-                  // Bar chart
-                  if (period == 'week' &&
-                      stats.weeklyBreakdown.isNotEmpty) ...[
-                    _SectionLabel(label: 'Weekly breakdown'),
+                  // Per medication breakdown
+                  if (stats.byMedication.isNotEmpty) ...[
+                    const Text(
+                      'By medication',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
                     const SizedBox(height: 12),
-                    _WeeklyBarChart(
-                        items: stats.weeklyBreakdown),
-                  ],
-
-                  if (period == 'month' &&
-                      stats.monthlyBreakdown.isNotEmpty) ...[
-                    _SectionLabel(label: 'Monthly breakdown'),
-                    const SizedBox(height: 12),
-                    _MonthlyBarChart(
-                        items: stats.monthlyBreakdown),
+                    _MedicationBarChart(items: stats.byMedication),
                   ],
                 ],
               ),
@@ -157,8 +144,7 @@ class _PeriodTab extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding:
-        const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : AppColors.grey100,
           borderRadius: BorderRadius.circular(20),
@@ -168,8 +154,7 @@ class _PeriodTab extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color:
-            isSelected ? Colors.white : AppColors.textSecondary,
+            color: isSelected ? Colors.white : AppColors.textSecondary,
           ),
         ),
       ),
@@ -177,15 +162,14 @@ class _PeriodTab extends StatelessWidget {
   }
 }
 
-// ── Adherence card ────────────────────────────────────────
+// ── Overall adherence card ────────────────────────────────
 
-class _AdherenceCard extends StatelessWidget {
-  const _AdherenceCard({required this.stats});
-  final DoseStats stats;
+class _OverallCard extends StatelessWidget {
+  const _OverallCard({required this.rate});
+  final int rate;
 
   @override
   Widget build(BuildContext context) {
-    final pct = (stats.adherenceRate * 100).round();
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -203,15 +187,12 @@ class _AdherenceCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Adherence rate',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white70,
-                  ),
+                  'Overall adherence',
+                  style: TextStyle(fontSize: 14, color: Colors.white70),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '$pct%',
+                  '$rate%',
                   style: const TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.w700,
@@ -221,9 +202,9 @@ class _AdherenceCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  pct >= 80
+                  rate >= 80
                       ? 'Excellent! Keep it up 🎉'
-                      : pct >= 60
+                      : rate >= 60
                       ? 'Good progress — stay consistent!'
                       : 'Let\'s work on building the habit 💪',
                   style: const TextStyle(
@@ -234,7 +215,6 @@ class _AdherenceCard extends StatelessWidget {
               ],
             ),
           ),
-          // Circular progress
           SizedBox(
             width: 80,
             height: 80,
@@ -242,14 +222,14 @@ class _AdherenceCard extends StatelessWidget {
               alignment: Alignment.center,
               children: [
                 CircularProgressIndicator(
-                  value: stats.adherenceRate,
+                  value: rate / 100,
                   backgroundColor: Colors.white30,
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                      Colors.white),
+                  valueColor:
+                  const AlwaysStoppedAnimation<Color>(Colors.white),
                   strokeWidth: 8,
                 ),
                 Text(
-                  '$pct%',
+                  '$rate%',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -265,120 +245,14 @@ class _AdherenceCard extends StatelessWidget {
   }
 }
 
-// ── Summary row ───────────────────────────────────────────
+// ── Per medication bar chart ──────────────────────────────
 
-class _SummaryRow extends StatelessWidget {
-  const _SummaryRow({required this.stats});
-  final DoseStats stats;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        _SummaryCard(
-          label: 'Taken',
-          value: '${stats.doneDoses}',
-          color: AppColors.done,
-        ),
-        const SizedBox(width: 10),
-        _SummaryCard(
-          label: 'Skipped',
-          value: '${stats.skippedDoses}',
-          color: AppColors.skipped,
-        ),
-        const SizedBox(width: 10),
-        _SummaryCard(
-          label: 'Missed',
-          value: '${stats.missedDoses}',
-          color: AppColors.missed,
-        ),
-        const SizedBox(width: 10),
-        _SummaryCard(
-          label: 'Total',
-          value: '${stats.totalDoses}',
-          color: AppColors.primary,
-        ),
-      ],
-    );
-  }
-}
-
-class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  final String label;
-  final String value;
-  final Color color;
+class _MedicationBarChart extends StatelessWidget {
+  const _MedicationBarChart({required this.items});
+  final List<MedicationStat> items;
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.grey200),
-        ),
-        child: Column(
-          children: [
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: color,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Section label ─────────────────────────────────────────
-
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel({required this.label});
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: const TextStyle(
-        fontSize: 15,
-        fontWeight: FontWeight.w700,
-        color: AppColors.textPrimary,
-      ),
-    );
-  }
-}
-
-// ── Weekly bar chart ──────────────────────────────────────
-
-class _WeeklyBarChart extends StatelessWidget {
-  const _WeeklyBarChart({required this.items});
-  final List<WeeklyStats> items;
-
-  @override
-  Widget build(BuildContext context) {
-    final maxVal =
-    items.map((i) => i.total).fold(0, (a, b) => a > b ? a : b);
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -388,137 +262,47 @@ class _WeeklyBarChart extends StatelessWidget {
       ),
       child: Column(
         children: items.map((item) {
-          final pct =
-          (item.adherenceRate * 100).round();
-          final barWidth = maxVal == 0
-              ? 0.0
-              : item.done / maxVal;
+          final barWidth = item.rate / 100;
+          final color = item.rate >= 80
+              ? AppColors.done
+              : item.rate >= 50
+              ? AppColors.pending
+              : AppColors.missed;
 
           return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Row(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  width: 72,
-                  child: Text(
-                    item.weekLabel,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textSecondary,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: barWidth,
-                      backgroundColor: AppColors.grey100,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        pct >= 80
-                            ? AppColors.done
-                            : pct >= 50
-                            ? AppColors.pending
-                            : AppColors.missed,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      item.medicationName,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
                       ),
-                      minHeight: 14,
                     ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                SizedBox(
-                  width: 36,
-                  child: Text(
-                    '$pct%',
-                    textAlign: TextAlign.right,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-}
-
-// ── Monthly bar chart ─────────────────────────────────────
-
-class _MonthlyBarChart extends StatelessWidget {
-  const _MonthlyBarChart({required this.items});
-  final List<MonthlyStats> items;
-
-  @override
-  Widget build(BuildContext context) {
-    final maxVal =
-    items.map((i) => i.total).fold(0, (a, b) => a > b ? a : b);
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200),
-      ),
-      child: Column(
-        children: items.map((item) {
-          final pct =
-          (item.adherenceRate * 100).round();
-          final barWidth = maxVal == 0
-              ? 0.0
-              : item.done / maxVal;
-
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 72,
-                  child: Text(
-                    item.monthLabel,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textSecondary,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: barWidth,
-                      backgroundColor: AppColors.grey100,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        pct >= 80
-                            ? AppColors.done
-                            : pct >= 50
-                            ? AppColors.pending
-                            : AppColors.missed,
+                    Text(
+                      '${item.rate}%',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: color,
                       ),
-                      minHeight: 14,
                     ),
-                  ),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                SizedBox(
-                  width: 36,
-                  child: Text(
-                    '$pct%',
-                    textAlign: TextAlign.right,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
+                const SizedBox(height: 6),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: barWidth,
+                    backgroundColor: AppColors.grey100,
+                    valueColor: AlwaysStoppedAnimation<Color>(color),
+                    minHeight: 10,
                   ),
                 ),
               ],

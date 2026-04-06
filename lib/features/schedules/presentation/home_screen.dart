@@ -245,7 +245,14 @@ class _ScheduleCard extends ConsumerWidget {
       DoseStatus.pending => 'Pending',
     };
 
-    final isActionable = schedule.status == DoseStatus.pending;
+    // final isActionable = schedule.status == DoseStatus.pending;
+    // pending -> two buttons to confirm or skip
+    // done/skipped -> show status but allow changing in case of mistakes
+    // missed -> not actionable, just show status
+    final isPending = schedule.status == DoseStatus.pending;
+    final isActioned = schedule.status == DoseStatus.done ||
+        schedule.status == DoseStatus.skipped;
+
 
     return Container(
       margin: const EdgeInsets.fromLTRB(24, 0, 24, 12),
@@ -257,6 +264,7 @@ class _ScheduleCard extends ConsumerWidget {
       ),
       child: Row(
         children: [
+          // Status indicator
           Container(
             width: 10,
             height: 10,
@@ -266,6 +274,8 @@ class _ScheduleCard extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 14),
+
+          // Medication info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -293,24 +303,9 @@ class _ScheduleCard extends ConsumerWidget {
               ],
             ),
           ),
-          if (!isActionable)
-            Container(
-              padding:
-              const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: statusColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                statusLabel,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: statusColor,
-                ),
-              ),
-            )
-          else
+
+          // Pending: show confirm/skip buttons
+          if (isPending)
             Row(
               children: [
                 _ActionButton(
@@ -328,15 +323,82 @@ class _ScheduleCard extends ConsumerWidget {
                   icon: Icons.check_rounded,
                   color: AppColors.done,
                   onPressed: () async {
-                    await ref
-                        .read(doseNotifierProvider.notifier)
-                        .confirmDose(
+                    await ref.read(doseNotifierProvider.notifier).confirmDose(
                       scheduleId: schedule.scheduleId,
                       logDate: _todayDate,
                     );
                   },
                 ),
               ],
+            )
+
+          // Done / Skipped: show status + undo option
+          else if (isActioned)
+            Row(
+              children: [
+                // Status label
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    statusLabel,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: statusColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Undo button
+                GestureDetector(
+                  onTap: () {
+                    ref.read(doseNotifierProvider.notifier).undoDose(
+                      scheduleId: schedule.scheduleId,
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.grey100,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.grey200),
+                    ),
+                    child: const Text(
+                      'Undo',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+
+          // ── Missed: only shows status ──
+          else
+            Container(
+              padding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                statusLabel,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: statusColor,
+                ),
+              ),
             ),
         ],
       ),
