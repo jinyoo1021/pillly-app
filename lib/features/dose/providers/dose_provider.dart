@@ -3,6 +3,7 @@ import '../data/dose_repository.dart';
 import '../domain/dose_action.dart';
 import '../../schedules/domain/schedule.dart';
 import '../../schedules/providers/schedule_provider.dart';
+import '../providers/dose_history_provider.dart';
 
 final doseRepositoryProvider = Provider<DoseRepository>((ref) {
   return DoseRepository();
@@ -33,6 +34,7 @@ class DoseNotifier extends AsyncNotifier<void> {
       ref.read(todaySchedulesProvider.notifier).refresh();
     }
     await ref.read(todaySchedulesProvider.notifier).refresh();
+    ref.invalidate(doseLogsProvider);
   }
 
   Future<void> skipDose({
@@ -54,6 +56,7 @@ class DoseNotifier extends AsyncNotifier<void> {
       ref.read(todaySchedulesProvider.notifier).refresh();
     }
     await ref.read(todaySchedulesProvider.notifier).refresh();
+    ref.invalidate(doseLogsProvider);
   }
 
   // Undo - optimistic UI update
