@@ -47,8 +47,8 @@ class Medication {
 
     // Get cycle_type from first schedule if not at root level
     final cycleTypeStr = map['cycle_type'] as String? ??
-        (schedulesList.isNotEmpty
-            ? schedulesList.first['cycle_type'] as String? ?? 'daily'
+        (activeSchedules.isNotEmpty
+            ? activeSchedules.first['cycle_type'] as String? ?? 'daily'
             : 'daily');
 
     List<int>? weekdays;

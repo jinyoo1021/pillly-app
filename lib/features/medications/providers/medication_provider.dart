@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/medication_repository.dart';
 import '../domain/medication.dart';
+import '../../schedules/providers/schedule_provider.dart';
 
 final medicationRepositoryProvider = Provider<MedicationRepository>((ref) {
   return MedicationRepository();
@@ -99,6 +100,7 @@ class MedicationUpdateNotifier extends AsyncNotifier<void> {
     );
     if (!state.hasError) {
       ref.read(medicationListProvider.notifier).refresh();
+      await ref.read(todaySchedulesProvider.notifier).refresh();
     }
     return !state.hasError;
   }
