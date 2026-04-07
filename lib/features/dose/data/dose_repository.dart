@@ -131,6 +131,28 @@ class DoseRepository {
     return items.map((e) => DoseLog.fromMap(e as Map<String, dynamic>)).toList();
   }
 
+  // ── DELETE /dose/undo ────────────────────────────────────
+
+  Future<void> undoDose({required String scheduleId}) async {
+    final session = SupabaseClientService.currentSession;
+    if (session == null) throw Exception('Not authenticated');
+
+    final uri = Uri.parse(
+      '${AppConstants.apiBaseUrl}/dose/undo?schedule_id=$scheduleId',
+    );
+    final response = await http.delete(
+      uri,
+      headers: {
+        'Authorization': 'Bearer ${session.accessToken}',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to undo dose: ${response.body}');
+    }
+  }
+
   // ── Private helper ───────────────────────────────────
 
   Future<void> _post(String path, Map<String, dynamic> body) async {

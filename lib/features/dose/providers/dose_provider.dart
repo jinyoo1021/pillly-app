@@ -63,9 +63,20 @@ class DoseNotifier extends AsyncNotifier<void> {
 
   // Undo - optimistic UI update
   Future<void> undoDose({required String scheduleId}) async {
-   ref
-        .read(todaySchedulesProvider.notifier)
+    // Optimistic UI update
+    ref.read(todaySchedulesProvider.notifier)
         .updateScheduleStatus(scheduleId, DoseStatus.pending);
+
+    try {
+      await _repo.undoDose(scheduleId: scheduleId);
+    } catch (_) {
+      // Rollback on failure
+      await ref.read(todaySchedulesProvider.notifier).refresh();
+    }
+
+    // Sync history
+    ref.invalidate(doseLogsProvider);
+    ref.invalidate(selectedDateLogsProvider);
   }
 }
 
