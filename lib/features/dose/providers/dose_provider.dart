@@ -35,6 +35,7 @@ class DoseNotifier extends AsyncNotifier<void> {
     }
     await ref.read(todaySchedulesProvider.notifier).refresh();
     ref.invalidate(doseLogsProvider);
+    ref.invalidate(selectedDateLogsProvider);
   }
 
   Future<void> skipDose({
@@ -57,6 +58,7 @@ class DoseNotifier extends AsyncNotifier<void> {
     }
     await ref.read(todaySchedulesProvider.notifier).refresh();
     ref.invalidate(doseLogsProvider);
+    ref.invalidate(selectedDateLogsProvider);
   }
 
   // Undo - optimistic UI update

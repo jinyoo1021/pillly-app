@@ -105,6 +105,32 @@ class DoseRepository {
     return DoseStats.fromMap(body);
   }
 
+  // ── GET /dose/logs/day ───────────────────────────────────
+
+  Future<List<DoseLog>> fetchDayLogs({required String date}) async {
+    final session = SupabaseClientService.currentSession;
+    if (session == null) return [];
+
+    final uri = Uri.parse(
+      '${AppConstants.apiBaseUrl}/dose/logs/day?date=$date',
+    );
+    final response = await http.get(
+      uri,
+      headers: {
+        'Authorization': 'Bearer ${session.accessToken}',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to fetch day logs: ${response.body}');
+    }
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    final items = body['items'] as List<dynamic>? ?? [];
+    return items.map((e) => DoseLog.fromMap(e as Map<String, dynamic>)).toList();
+  }
+
   // ── Private helper ───────────────────────────────────
 
   Future<void> _post(String path, Map<String, dynamic> body) async {

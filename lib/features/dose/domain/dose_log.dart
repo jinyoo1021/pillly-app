@@ -21,9 +21,9 @@ class DoseLog {
 
   factory DoseLog.fromMap(Map<String, dynamic> map) {
     return DoseLog(
-      id: map['id'] as String,
-      scheduleId: map['schedule_id'] as String,
-      medicationName: map['medication_name'] as String,
+      id: map['id'] as String? ?? '',
+      scheduleId: map['schedule_id'] as String? ?? '',
+      medicationName: map['medication_name'] as String? ?? '',
       logDate: DateTime.parse(map['log_date'] as String),
       status: DoseStatus.values.firstWhere(
             (s) => s.name == (map['status'] as String? ?? 'pending'),

@@ -51,6 +51,8 @@ class DoseHistoryScreen extends ConsumerWidget {
         ),
         data: (logs) {
           final logsByDate = ref.watch(logsByDateProvider);
+          final selectedLogsAsync = ref.watch(selectedDateLogsProvider);
+
           return Column(
             children: [
               // Month navigator
@@ -89,9 +91,14 @@ class DoseHistoryScreen extends ConsumerWidget {
 
               // Log list
               Expanded(
-                child: logs.isEmpty
-                    ? const _EmptyView()
-                    : _LogList(logs: logs),
+                child: selectedLogsAsync.when(
+                  loading: () => const Center(
+                      child: CircularProgressIndicator(color: AppColors.primary)),
+                  error: (e, _) => Center(child: Text('Failed to load: $e')),
+                  data: (dayLogs) => dayLogs.isEmpty
+                      ? const _EmptyView()
+                      : _LogList(logs: dayLogs),
+                ),
               ),
             ],
           );
@@ -156,7 +163,7 @@ class _MonthNavigator extends StatelessWidget {
 
 // ── Calendar grid ─────────────────────────────────────────
 
-class _CalendarGrid extends StatelessWidget {
+class _CalendarGrid extends ConsumerWidget {
   const _CalendarGrid({
     required this.month,
     required this.logsByDate,
@@ -180,7 +187,8 @@ class _CalendarGrid extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedDate = ref.watch(selectedDateProvider);
     final firstDay = DateTime(month.year, month.month, 1);
     final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
     final startWeekday = firstDay.weekday % 7; // Sun=0
@@ -231,48 +239,57 @@ class _CalendarGrid extends StatelessWidget {
                   date.month == today.month &&
                   date.day == today.day;
               final isFuture = date.isAfter(today);
+              final isSelected = key == selectedDate;
 
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: isToday
-                          ? AppColors.primary
-                          : Colors.transparent,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '$day',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: isToday
-                              ? FontWeight.w700
-                              : FontWeight.w400,
-                          color: isToday
-                              ? Colors.white
-                              : isFuture
-                              ? AppColors.grey400
-                              : AppColors.textPrimary,
+              return GestureDetector(
+                onTap: isFuture ? null : () {
+                  // Toggle selection
+                  ref.read(selectedDateProvider.notifier).set(
+                    isSelected ? null : key,
+                  );
+                },
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        color: isToday
+                            ? AppColors.primary
+                            : Colors.transparent,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '$day',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: isToday
+                                ? FontWeight.w700
+                                : FontWeight.w400,
+                            color: isToday
+                                ? Colors.white
+                                : isFuture
+                                ? AppColors.grey400
+                                : AppColors.textPrimary,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 3),
-                  Container(
-                    width: 5,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: isFuture
-                          ? Colors.transparent
-                          : _dotColor(status),
-                      shape: BoxShape.circle,
+                    const SizedBox(height: 3),
+                    Container(
+                      width: 5,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: isFuture
+                            ? Colors.transparent
+                            : _dotColor(status),
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               );
             },
           ),
@@ -284,47 +301,56 @@ class _CalendarGrid extends StatelessWidget {
 
 // ── Monthly summary ───────────────────────────────────────
 
-class _MonthlySummary extends StatelessWidget {
+class _MonthlySummary extends ConsumerWidget {
   const _MonthlySummary({required this.logs});
   final List<DoseLog> logs;
 
   @override
-  Widget build(BuildContext context) {
-    final total = logs.length;
-    final done = logs.where((l) => l.status == DoseStatus.done).length;
-    final skipped =
-        logs.where((l) => l.status == DoseStatus.skipped).length;
-    final missed =
-        logs.where((l) => l.status == DoseStatus.missed).length;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedDate = ref.watch(selectedDateProvider);
+    final selectedLogsAsync = ref.watch(selectedDateLogsProvider);
+
+    final displayLogs = selectedLogsAsync.value ?? [];
+    final label = selectedDate != null
+        ? DateFormat('MMMM d').format(DateTime.parse(selectedDate))
+        : '';
+
+    final total = displayLogs.length;
+    final done = displayLogs.where((l) => l.status == DoseStatus.done).length;
+    final skipped = displayLogs.where((l) => l.status == DoseStatus.skipped).length;
+    final missed = displayLogs.where((l) => l.status == DoseStatus.missed).length;
     final rate = total == 0 ? 0 : (done / total * 100).round();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      child: Row(
+      padding: const EdgeInsets.fromLTRB(24, 8, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _StatChip(
-            label: 'Adherence',
-            value: '$rate%',
-            color: AppColors.primary,
+          // Date label
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
           ),
-          const SizedBox(width: 10),
-          _StatChip(
-            label: 'Taken',
-            value: '$done',
-            color: AppColors.done,
-          ),
-          const SizedBox(width: 10),
-          _StatChip(
-            label: 'Skipped',
-            value: '$skipped',
-            color: AppColors.skipped,
-          ),
-          const SizedBox(width: 10),
-          _StatChip(
-            label: 'Missed',
-            value: '$missed',
-            color: AppColors.missed,
-          ),
+          const SizedBox(height: 8),
+          // Stats row
+          if (selectedLogsAsync.isLoading)
+            const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          else
+            Row(
+              children: [
+                _StatChip(label: 'Adherence', value: '$rate%', color: AppColors.primary),
+                const SizedBox(width: 8),
+                _StatChip(label: 'Taken', value: '$done', color: AppColors.done),
+                const SizedBox(width: 8),
+                _StatChip(label: 'Skipped', value: '$skipped', color: AppColors.skipped),
+                const SizedBox(width: 8),
+                _StatChip(label: 'Missed', value: '$missed', color: AppColors.missed),
+              ],
+            ),
         ],
       ),
     );
@@ -384,9 +410,20 @@ class _LogList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Sort by date descending
+    // Sort by status (done → skipped → missed) then by scheduled time
+    const statusOrder = {
+      DoseStatus.done: 0,
+      DoseStatus.skipped: 1,
+      DoseStatus.missed: 2,
+      DoseStatus.pending: 3,
+    };
     final sorted = [...logs]
-      ..sort((a, b) => b.logDate.compareTo(a.logDate));
+      ..sort((a, b) {
+        final statusCompare =
+        (statusOrder[a.status] ?? 3).compareTo(statusOrder[b.status] ?? 3);
+        if (statusCompare != 0) return statusCompare;
+        return (a.scheduledTime ?? '').compareTo(b.scheduledTime ?? '');
+      });
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 8),

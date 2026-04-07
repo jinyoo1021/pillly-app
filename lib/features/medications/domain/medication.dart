@@ -38,7 +38,10 @@ class Medication {
   factory Medication.fromMap(Map<String, dynamic> map) {
     // Extract scheduled_times from nested schedules array
     final schedulesList = map['schedules'] as List<dynamic>? ?? [];
-    final scheduledTimes = schedulesList
+    final activeSchedules = schedulesList
+        .where((s) => s['is_active'] == true)
+        .toList();
+    final scheduledTimes = activeSchedules
         .map((s) => (s['scheduled_time'] as String).substring(0, 5))
         .toList();
 
@@ -47,6 +50,16 @@ class Medication {
         (schedulesList.isNotEmpty
             ? schedulesList.first['cycle_type'] as String? ?? 'daily'
             : 'daily');
+
+    List<int>? weekdays;
+    if (map['weekdays'] != null) {
+      weekdays = List<int>.from(map['weekdays']);
+    } else if (activeSchedules.isNotEmpty) {
+      final cycleValue = activeSchedules.first['cycle_value'];
+      if (cycleValue is Map && cycleValue['weekdays'] != null) {
+        weekdays = List<int>.from(cycleValue['weekdays']);
+      }
+    }
 
     return Medication(
       id: map['id'] as String,
@@ -59,9 +72,7 @@ class Medication {
           : null,
       unit: map['unit'] as String?,
       intervalDays: map['interval_days'] as int?,
-      weekdays: map['weekdays'] != null
-          ? List<int>.from(map['weekdays'])
-          : null,
+      weekdays: weekdays,
       memo: map['memo'] as String?,
       isActive: map['is_active'] as bool? ?? true,
     );

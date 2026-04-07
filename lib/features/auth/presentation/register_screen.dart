@@ -55,8 +55,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       error: (e, _) => _showError(e.toString()),
       data: (user) {
         if (user != null) {
+          ref.read(authNotifierProvider.notifier).signOut();
           _showSuccess();
-          context.go(AppRoutes.home);
+          context.go(AppRoutes.login);
         }
       },
     );

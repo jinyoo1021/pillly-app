@@ -82,3 +82,34 @@ DoseStatus? dayStatus(List<DoseLog> logs) {
   if (hasPending) return DoseStatus.pending;
   return DoseStatus.skipped;
 }
+
+// ── Selected date ─────────────────────────────────────────
+class SelectedDateNotifier extends Notifier<String?> {
+  @override
+  String? build(){
+    // Default to today
+    return DateFormat('yyyy-MM-dd').format(DateTime.now());
+  }
+
+  void set(String? date) => state = date;
+}
+
+final selectedDateProvider =
+NotifierProvider<SelectedDateNotifier, String?>(SelectedDateNotifier.new);
+
+// ── Logs for selected date (fetched from API) ─────────────
+final selectedDateLogsProvider =
+AsyncNotifierProvider<SelectedDateLogsNotifier, List<DoseLog>>(
+  SelectedDateLogsNotifier.new,
+);
+
+class SelectedDateLogsNotifier extends AsyncNotifier<List<DoseLog>> {
+  DoseRepository get _repo => ref.read(doseRepositoryProvider);
+
+  @override
+  Future<List<DoseLog>> build() async {
+    final date = ref.watch(selectedDateProvider);
+    if (date == null) return [];
+    return _repo.fetchDayLogs(date: date);
+  }
+}
