@@ -77,8 +77,8 @@
             <string>Editor</string>
             <key>CFBundleURLSchemes</key>
             <array>
-                <!-- REVERSED_CLIENT_ID from GoogleService-Info.plist -->
-                <string>REDACTED_REVERSED_CLIENT_ID</string>
+                <!-- Injected at build time from ios/Flutter/Secrets.xcconfig -->
+                <string>$(REVERSED_CLIENT_ID)</string>
             </array>
         </dict>
     </array>

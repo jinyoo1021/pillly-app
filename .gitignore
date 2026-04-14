@@ -113,6 +113,10 @@ web/
 # Flutter generated files
 # ============================================================
 .metadata
-macos/Flutter/GeneratedPluginRegistrant.swiftlib/firebase_options.dart
+macos/Flutter/GeneratedPluginRegistrant.swift
+
+# Firebase / OAuth secrets (generated locally, never commit)
+lib/firebase_options.dart
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
+ios/Flutter/Secrets.xcconfig
